@@ -1,6 +1,10 @@
 import { sanityFetch } from "@workspace/sanity/live";
 import {
+  queryAllCategories,
+  queryBlogCategoryAvailability,
   queryBlogIndexPageBlogs,
+  queryBlogIndexPageBlogsByCategories,
+  queryBlogIndexPageBlogsByCategoriesCount,
   queryBlogIndexPageBlogsCount,
   queryBlogIndexPageData,
 } from "@workspace/sanity/query";
@@ -10,6 +14,7 @@ import { BlogHeader } from "@/components/blog-card";
 import { BlogPageContent } from "@/components/blog-page-content";
 import { PageBuilder } from "@/components/pagebuilder";
 import { getSEOMetadata } from "@/lib/seo";
+import type { CategoryWithAvailability } from "@/types";
 import {
   calculatePaginationMetadata,
   getBlogPaginationStartEnd,
@@ -29,9 +34,55 @@ async function fetchBlogIndexPageBlogs(start: number, end: number) {
   return res.data;
 }
 
+async function fetchBlogIndexPageBlogsByCategories(
+  categorySlugs: string[],
+  start: number,
+  end: number
+) {
+  const res = await sanityFetch({
+    query: queryBlogIndexPageBlogsByCategories,
+    params: {
+      categorySlugs,
+      categoryCount: categorySlugs.length,
+      start,
+      end,
+    },
+  });
+  return res.data;
+}
+
 async function fetchBlogIndexPageBlogsCount() {
   const res = await sanityFetch({
     query: queryBlogIndexPageBlogsCount,
+  });
+  return res.data;
+}
+
+async function fetchBlogIndexPageBlogsByCategoriesCount(
+  categorySlugs: string[]
+) {
+  const res = await sanityFetch({
+    query: queryBlogIndexPageBlogsByCategoriesCount,
+    params: {
+      categorySlugs,
+      categoryCount: categorySlugs.length,
+    },
+  });
+  return res.data;
+}
+
+async function fetchAllCategories() {
+  const res = await sanityFetch({ query: queryAllCategories });
+  return res.data;
+}
+
+async function fetchCategoryAvailability(selectedSlugs: string[]) {
+  const res = await sanityFetch({
+    query: queryBlogCategoryAvailability,
+    params: {
+      selectedSlugs,
+      selectedCount: selectedSlugs.length,
+    },
   });
   return res.data;
 }
@@ -52,23 +103,54 @@ export async function generateMetadata() {
 type BlogPageProps = {
   searchParams: Promise<{
     page?: string;
+    categories?: string;
   }>;
 };
 
 export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
-  const { page } = await searchParams;
+  const { page, categories: categoriesParam } = await searchParams;
   const currentPage = page ? Number(page) : 1;
 
-  // Fetch page data and total count in parallel
-  const [[indexPageData, errIndexPageData], [totalCount, errTotalCount]] =
-    await Promise.all([
-      handleErrors(fetchBlogIndexPageData()),
-      handleErrors(fetchBlogIndexPageBlogsCount()),
-    ]);
+  // Parse raw category slugs from URL
+  const rawCategorySlugs = categoriesParam
+    ? categoriesParam
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
+
+  // Always fetch all categories first so we can validate URL slugs
+  const [
+    [indexPageData, errIndexPageData],
+    [allCategories, errCategories],
+  ] = await Promise.all([
+    handleErrors(fetchBlogIndexPageData()),
+    handleErrors(fetchAllCategories()),
+  ]);
+
+  // Validate URL slugs against real categories — drop any that don't exist
+  const validCategorySlugs: string[] = allCategories
+    ? rawCategorySlugs.filter((slug) =>
+        allCategories.some((c) => c.slug === slug)
+      )
+    : [];
+
+  const selectedCategorySlugs = validCategorySlugs;
+  const hasCategories = selectedCategorySlugs.length > 0;
+
+  // Fetch total count based on validated slugs
+  const [[totalCount, errTotalCount]] = await Promise.all([
+    hasCategories
+      ? handleErrors(
+          fetchBlogIndexPageBlogsByCategoriesCount(selectedCategorySlugs)
+        )
+      : handleErrors(fetchBlogIndexPageBlogsCount()),
+  ]);
 
   if (errIndexPageData || !indexPageData) {
     notFound();
   }
+
 
   if (errTotalCount || totalCount === null || totalCount === undefined) {
     return (
@@ -102,13 +184,42 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
     currentPage
   );
 
-  const { start, end } = getBlogPaginationStartEnd(currentPage);
-  const blogStart = currentPage === 1 ? 0 : start + featuredBlogsCount;
-  const blogEnd = end + featuredBlogsCount;
+  // If the requested page is beyond the total pages (and there ARE pages),
+  // we still render the page but flag that no results exist for this page.
+  const isPageOutOfRange =
+    paginationMetadata.totalPages > 0 &&
+    currentPage > paginationMetadata.totalPages;
 
-  const [blogs, errBlogs] = await handleErrors(
-    fetchBlogIndexPageBlogs(blogStart, blogEnd)
-  );
+  const { start, end } = getBlogPaginationStartEnd(currentPage);
+
+  // Only apply the featured-blogs offset when no category filters are active,
+  // because featured blogs are not displayed on filtered pages.
+  const offset = hasCategories ? 0 : featuredBlogsCount;
+  const blogStart = currentPage === 1 ? 0 : start + offset;
+  const blogEnd = end + offset;
+
+  // Fetch blogs and category availability in parallel
+  const [[blogs, errBlogs], [categoriesWithAvailability]] = await Promise.all([
+    hasCategories
+      ? handleErrors(
+          fetchBlogIndexPageBlogsByCategories(
+            selectedCategorySlugs,
+            blogStart,
+            blogEnd
+          )
+        )
+      : handleErrors(fetchBlogIndexPageBlogs(blogStart, blogEnd)),
+    hasCategories
+      ? handleErrors(fetchCategoryAvailability(selectedCategorySlugs))
+      : // When no filters are active, all categories are available (blogCount: 1)
+        handleErrors(
+          Promise.resolve(
+            (allCategories ?? []).map((c) => ({ ...c, blogCount: 1 }))
+          )
+        ),
+  ]);
+
+  console.log("categoriesWithAvailability", categoriesWithAvailability);
 
   if (errBlogs || !blogs) {
     return (
@@ -133,11 +244,19 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
     );
   }
 
+  // Both branches now return CategoryWithAvailability[], no extra mapping needed
+  const categoriesForFilter: CategoryWithAvailability[] =
+    categoriesWithAvailability ?? [];
+
   return (
     <BlogPageContent
-      blogs={blogs}
+      blogs={isPageOutOfRange ? [] : blogs}
+      categories={categoriesForFilter}
+      hasActiveCategories={hasCategories}
       indexPageData={indexPageData}
+      isPageOutOfRange={isPageOutOfRange}
       paginationMetadata={paginationMetadata}
+      selectedCategorySlugs={selectedCategorySlugs}
     />
   );
 }

@@ -1,5 +1,7 @@
 import type { FilterByType, Get } from "@sanity/codegen";
 import type {
+  QueryAllCategoriesResult,
+  QueryBlogCategoryAvailabilityResult,
   QueryBlogIndexPageBlogsResult,
   QueryBlogSlugPageDataResult,
   QueryGlobalSeoSettingsResult,
@@ -34,6 +36,13 @@ export type SanityRichTextBlock = FilterByType<
 
 export type Blog = Get<QueryBlogIndexPageBlogsResult, number>;
 
+export type Category = Get<QueryAllCategoriesResult, number>;
+
+export type CategoryWithAvailability = Get<
+  QueryBlogCategoryAvailabilityResult,
+  number
+>;
+
 export type Maybe<T> = T | null | undefined;
 
 // Navigation types
@@ -56,3 +65,4 @@ export type MenuLinkProps = {
   icon?: string | null;
   onClick?: () => void;
 };
+

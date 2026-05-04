@@ -7,6 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@workspace/ui/components/pagination";
+import { useSearchParams } from "next/navigation";
 import { useCallback } from "react";
 
 export type PaginationProps = {
@@ -70,15 +71,22 @@ export function BlogPagination({
   className,
 }: BlogPaginationProps) {
   const paginationItems = generatePaginationItems(currentPage, totalPages);
+  const searchParams = useSearchParams();
 
   const getPageUrl = useCallback(
     (page: number): string => {
+      const params = new URLSearchParams(searchParams.toString());
+
       if (page === 1) {
-        return basePath;
+        params.delete("page");
+      } else {
+        params.set("page", String(page));
       }
-      return `${basePath}?page=${page}`;
+
+      const qs = params.toString();
+      return qs ? `${basePath}?${qs}` : basePath;
     },
-    [basePath]
+    [basePath, searchParams]
   );
 
   return (
