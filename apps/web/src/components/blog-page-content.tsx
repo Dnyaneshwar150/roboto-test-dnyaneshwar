@@ -13,8 +13,8 @@ import {
   SelectedFiltersRow,
 } from "@/components/category-filter";
 import { PageBuilder } from "@/components/pagebuilder";
+import { useAlgoliaSearch } from "@/hooks/use-algolia-search";
 import { useBlogFilters } from "@/hooks/use-blog-filters";
-import { useBlogSearch } from "@/hooks/use-blog-search";
 import type { Blog, CategoryWithAvailability } from "@/types";
 import type { PaginationMetadata } from "@/utils";
 import { SearchInput } from "./blog-search";
@@ -72,7 +72,7 @@ function BlogPageContentInner({
   } = indexPageData;
 
   const { searchQuery, setSearchQuery, results, isSearching, hasQuery, error } =
-    useBlogSearch();
+    useAlgoliaSearch(selectedCategorySlugs);
 
   const { toggleCategory, removeCategory, clearAll } = useBlogFilters();
 
@@ -95,13 +95,10 @@ function BlogPageContentInner({
     ? blogs.slice(validFeaturedBlogsCount)
     : blogs;
 
-  // Show empty state when no articles are found (zero-result filters,
-  // invalid categories, page out of range, etc.)
   const showEmptyState =
     (hasActiveCategories || isPageOutOfRange) &&
     featuredBlogs.length === 0 &&
     remainingBlogs.length === 0;
-
 
   return (
     <main className="bg-background">
@@ -116,8 +113,7 @@ function BlogPageContentInner({
           value={searchQuery}
         />
 
-        {/* Category Filter Bar */}
-        {categories.length > 0 && !hasQuery && (
+        {categories.length > 0 && (
           <div className="mb-8 space-y-3">
             <CategoryFilterBar
               categories={categories}

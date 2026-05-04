@@ -12,7 +12,8 @@
     "format:check": "biome format .",
     "check-types": "tsc --noEmit",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "index-algolia": "tsx scripts/index-algolia.ts"
   },
   "dependencies": {
     "@sanity/asset-utils": "^2.3.0",
@@ -24,6 +25,7 @@
     "@workspace/logger": "workspace:*",
     "@workspace/sanity": "workspace:*",
     "@workspace/ui": "workspace:*",
+    "algoliasearch": "^5.52.0",
     "babel-plugin-react-compiler": "19.1.0-rc.2",
     "fuse.js": "^7.1.0",
     "lucide-react": "catalog:",
@@ -32,6 +34,7 @@
     "next-themes": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
+    "react-instantsearch": "^7.31.0",
     "sanity-image": "^1.1.0",
     "schema-dts": "^1.1.5",
     "server-only": "^0.0.1",
@@ -47,6 +50,7 @@
     "@types/react-dom": "catalog:",
     "@workspace/typescript-config": "workspace:*",
     "baseline-browser-mapping": "^2.10.8",
-    "dotenv": "^17.3.1"
+    "dotenv": "^17.3.1",
+    "tsx": "^4.21.0"
   }
 }
