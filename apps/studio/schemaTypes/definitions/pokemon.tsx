@@ -1,10 +1,6 @@
 import { type JSX, lazy, Suspense } from "react";
 import { defineField, defineType, type ObjectInputProps } from "sanity";
 
-/**
- * Lazy-load the PokemonSelector so the heavy component (with Sanity UI
- * hooks and fetch logic) is NOT evaluated at schema-registration time.
- */
 const LazyPokemonSelector = lazy(() =>
   import("@/components/pokemon-selector").then((mod) => ({
     default: mod.PokemonSelector,
@@ -19,10 +15,6 @@ function PokemonSelectorWrapper(props: ObjectInputProps): JSX.Element {
   );
 }
 
-/**
- * Pokémon object schema — stores normalised data from PokéAPI.
- * Rendered via the custom PokemonSelector input component.
- */
 export const pokemon = defineType({
   name: "pokemon",
   title: "Pokémon",

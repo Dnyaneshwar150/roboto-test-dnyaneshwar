@@ -111,7 +111,6 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
   const { page, categories: categoriesParam } = await searchParams;
   const currentPage = page ? Number(page) : 1;
 
-  // Parse raw category slugs from URL
   const rawCategorySlugs = categoriesParam
     ? categoriesParam
         .split(",")
@@ -119,7 +118,6 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
         .filter(Boolean)
     : [];
 
-  // Always fetch all categories first so we can validate URL slugs
   const [
     [indexPageData, errIndexPageData],
     [allCategories, errCategories],
@@ -128,7 +126,6 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
     handleErrors(fetchAllCategories()),
   ]);
 
-  // Validate URL slugs against real categories — drop any that don't exist
   const validCategorySlugs: string[] = allCategories
     ? rawCategorySlugs.filter((slug) =>
         allCategories.some((c) => c.slug === slug)
@@ -138,7 +135,6 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
   const selectedCategorySlugs = validCategorySlugs;
   const hasCategories = selectedCategorySlugs.length > 0;
 
-  // Fetch total count based on validated slugs
   const [[totalCount, errTotalCount]] = await Promise.all([
     hasCategories
       ? handleErrors(
@@ -184,21 +180,18 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
     currentPage
   );
 
-  // If the requested page is beyond the total pages (and there ARE pages),
-  // we still render the page but flag that no results exist for this page.
+
   const isPageOutOfRange =
     paginationMetadata.totalPages > 0 &&
     currentPage > paginationMetadata.totalPages;
 
   const { start, end } = getBlogPaginationStartEnd(currentPage);
 
-  // Only apply the featured-blogs offset when no category filters are active,
-  // because featured blogs are not displayed on filtered pages.
+
   const offset = hasCategories ? 0 : featuredBlogsCount;
   const blogStart = currentPage === 1 ? 0 : start + offset;
   const blogEnd = end + offset;
 
-  // Fetch blogs and category availability in parallel
   const [[blogs, errBlogs], [categoriesWithAvailability]] = await Promise.all([
     hasCategories
       ? handleErrors(
@@ -211,8 +204,7 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
       : handleErrors(fetchBlogIndexPageBlogs(blogStart, blogEnd)),
     hasCategories
       ? handleErrors(fetchCategoryAvailability(selectedCategorySlugs))
-      : // When no filters are active, all categories are available (blogCount: 1)
-        handleErrors(
+      : handleErrors(
           Promise.resolve(
             (allCategories ?? []).map((c) => ({ ...c, blogCount: 1 }))
           )
@@ -244,7 +236,6 @@ export default async function BlogIndexPage({ searchParams }: BlogPageProps) {
     );
   }
 
-  // Both branches now return CategoryWithAvailability[], no extra mapping needed
   const categoriesForFilter: CategoryWithAvailability[] =
     categoriesWithAvailability ?? [];
 

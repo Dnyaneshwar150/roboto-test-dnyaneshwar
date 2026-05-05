@@ -29,28 +29,6 @@ type BlogPageContentProps = {
   isPageOutOfRange: boolean;
 };
 
-function EmptyFilterState({ onClearAll }: { onClearAll: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="bg-muted mb-6 flex h-16 w-16 items-center justify-center rounded-full">
-        <ListFilter className="text-muted-foreground h-8 w-8" />
-      </div>
-      <h3 className="text-foreground mb-2 text-lg font-semibold">
-        No articles match these filters.
-      </h3>
-      <p className="text-muted-foreground mb-6 max-w-md text-sm">
-        Try removing a filter or clearing all.
-      </p>
-      <button
-        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-2 text-sm font-medium transition-colors"
-        onClick={onClearAll}
-        type="button"
-      >
-        Clear all filters
-      </button>
-    </div>
-  );
-}
 
 function BlogPageContentInner({
   indexPageData,
@@ -173,5 +151,31 @@ export function BlogPageContent(props: BlogPageContentProps) {
     <Suspense>
       <BlogPageContentInner {...props} />
     </Suspense>
+  );
+}
+
+
+
+
+function EmptyFilterState({ onClearAll }: { onClearAll: () => void }) {
+  return (
+    <div className="flex flex-col items-center justify-center py-20 text-center">
+      <div className="bg-muted mb-6 flex h-16 w-16 items-center justify-center rounded-full">
+        <ListFilter className="text-muted-foreground h-8 w-8" />
+      </div>
+      <h3 className="text-foreground mb-2 text-lg font-semibold">
+        No articles match these filters.
+      </h3>
+      <p className="text-muted-foreground mb-6 max-w-md text-sm">
+        Try removing a filter or clearing all.
+      </p>
+      <button
+        className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-full px-6 py-2 text-sm font-medium transition-colors"
+        onClick={onClearAll}
+        type="button"
+      >
+        Clear all filters
+      </button>
+    </div>
   );
 }

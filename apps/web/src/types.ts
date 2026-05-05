@@ -66,3 +66,12 @@ export type MenuLinkProps = {
   onClick?: () => void;
 };
 
+export type PortableTextSpan = {
+  _type: "span";
+  text?: string;
+};
+
+export type PortableTextBlock = {
+  _type: string;
+  children?: PortableTextSpan[];
+};

@@ -1,3 +1,8 @@
+
+// For this assignment, we're using a manual indexing script to sync blog data from Sanity to Algolia.
+// In production, this would typically be replaced by a Sanity webhook that triggers automatically
+// whenever a blog is created, updated, or deleted, keeping the Algolia index in sync in real time.
+
 import { createClient } from "@sanity/client";
 import { algoliasearch } from "algoliasearch";
 import dotenv from "dotenv";

@@ -6,10 +6,6 @@ import { useCallback, useMemo } from "react";
 const CATEGORIES_PARAM = "categories";
 const PAGE_PARAM = "page";
 
-/**
- * Hook to manage blog category filters via URL query params.
- * URL is the single source of truth — no separate local state.
- */
 export function useBlogFilters() {
   const router = useRouter();
   const pathname = usePathname();
@@ -32,7 +28,6 @@ export function useBlogFilters() {
     (categorySlugs: string[]) => {
       const params = new URLSearchParams(searchParams.toString());
 
-      // Always remove page param when filters change
       params.delete(PAGE_PARAM);
 
       if (categorySlugs.length === 0) {
