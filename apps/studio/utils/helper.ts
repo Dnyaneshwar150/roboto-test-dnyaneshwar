@@ -1,4 +1,6 @@
 import { isPortableTextTextBlock, type StringOptions } from "sanity";
+import { PokemonDetailResponse } from "./pokemon-fetch";
+import { NormalizedPokemon } from "./types";
 
 export const isRelativeUrl = (url: string) =>
   url.startsWith("/") || url.startsWith("#") || url.startsWith("?");
@@ -181,3 +183,20 @@ export const getPresentationUrl = () => {
 
   return presentationUrl;
 };
+
+
+export function normalizePokemon(
+  raw: PokemonDetailResponse
+): NormalizedPokemon {
+  const sprite = raw.sprites.front_default ?? "";
+  const artwork =
+    raw.sprites.other?.["official-artwork"]?.front_default ?? sprite;
+
+  return {
+    id: raw.id,
+    name: raw.name,
+    sprite,
+    artwork,
+    types: raw.types.map((t) => t.type.name),
+  };
+}

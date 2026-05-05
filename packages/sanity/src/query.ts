@@ -322,7 +322,14 @@ export const queryBlogSlugPageData = defineQuery(`
     ${blogAuthorFragment},
     ${imageFragment},
     ${richTextFragment},
-    ${pageBuilderFragment}
+    ${pageBuilderFragment},
+    pokemon {
+      id,
+      name,
+      sprite,
+      artwork,
+      types
+    }
   }
 `);
 

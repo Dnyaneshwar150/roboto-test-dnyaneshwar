@@ -155,3 +155,13 @@ export type PathnameParams = Omit<
   name?: string;
   options?: PathnameOptions;
 };
+
+
+
+export type NormalizedPokemon = {
+  id: number;
+  name: string;
+  sprite: string;
+  artwork: string;
+  types: string[];
+};

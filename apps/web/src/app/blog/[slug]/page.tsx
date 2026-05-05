@@ -8,6 +8,7 @@ import { RichText } from "@/components/elements/rich-text";
 import { SanityImage } from "@/components/elements/sanity-image";
 import { TableOfContent } from "@/components/elements/table-of-content";
 import { ArticleJsonLd } from "@/components/json-ld";
+import { PokemonArtwork } from "@/components/pokemon-artwork";
 import { getSEOMetadata } from "@/lib/seo";
 
 const logger = new Logger("BlogSlug");
@@ -83,13 +84,16 @@ export default async function BlogSlugPage({
   if (!data) {
     return notFound();
   }
-  const { title, description, image, richText } = data ?? {};
+  const { title, description, image, richText, pokemon } = data ?? {};
 
   return (
     <div className="container mx-auto my-16 px-4 md:px-6">
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_300px]">
         <main>
           <ArticleJsonLd article={data} />
+          {pokemon?.artwork && (
+            <PokemonArtwork pokemon={pokemon} />
+          )}
           <header className="mb-8">
             <h1 className="mt-2 font-bold text-4xl">{title}</h1>
             <p className="mt-4 text-lg text-muted-foreground">{description}</p>

@@ -124,6 +124,14 @@ export const blog = defineType({
       validation: (Rule) => Rule.required(),
     }),
     defineField({
+      name: "pokemon",
+      title: "Pokémon",
+      type: "pokemon",
+      description:
+        "Optionally attach a Pokémon to this blog post — its artwork will appear on the page",
+      group: GROUP.MAIN_CONTENT,
+    }),
+    defineField({
       name: "richText",
       type: "richText",
       description:
