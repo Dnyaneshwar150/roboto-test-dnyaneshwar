@@ -4,7 +4,7 @@ import { ALGOLIA_BLOG_INDEX, searchClient } from "@/lib/algolia";
 import type { Blog } from "@/types";
 import { useDebounce } from "./use-debounce";
 
-const SEARCH_DEBOUNCE_MS = 400;
+const SEARCH_DEBOUNCE_MS = 300;
 
 type SearchState = {
   results: Blog[];
